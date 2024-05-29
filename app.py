@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import streamlit as st
 import os
 from PIL import Image
+import pytesseract
 import google.generativeai as genai
 
 # Load environment variables from a .env file
@@ -29,10 +30,13 @@ def input_image_setup(uploaded_file):
     else:
         raise FileNotFoundError('No File Uploaded')
 
-def get_gemini_response(input_text, image, prompt):
+def extract_text_from_image(image):
+    return pytesseract.image_to_string(image)
+
+def get_gemini_response(input_text, prompt):
     try:
         model = genai.GenerativeModel()
-        response = model.generate_content([input_text, image[0], prompt])
+        response = model.generate_content([input_text, prompt])
         return response.text
     except Exception as e:
         st.error(f"An error occurred: {e}")
@@ -57,7 +61,7 @@ if submit:
     if uploaded_file is None:
         st.error('Please upload an image file.')
     else:
-        image_data = input_image_setup(uploaded_file)
-        response = get_gemini_response(default_prompt, image_data, input_prompt)
+        image_text = extract_text_from_image(image)
+        response = get_gemini_response(image_text, input_prompt or default_prompt)
         st.subheader('The Response Is')
         st.write(response)
