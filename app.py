@@ -1,16 +1,19 @@
 from dotenv import load_dotenv
-load_dotenv()
-
-
-
-
 import streamlit as st
 import os
 from PIL import Image
 import google.generativeai as genai
 
+# Load environment variables from a .env file
+load_dotenv()
+
 # Configure the generative AI API key
-genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+api_key = os.getenv('GOOGLE_API_KEY')
+if not api_key:
+    st.error('API key not found. Please set the GOOGLE_API_KEY environment variable.')
+    st.stop()
+
+genai.configure(api_key=api_key)
 
 def input_image_setup(uploaded_file):
     if uploaded_file is not None:
@@ -26,15 +29,19 @@ def input_image_setup(uploaded_file):
     else:
         raise FileNotFoundError('No File Uploaded')
 
-def get_gemini_response(input, image, prompt):
-    model = genai.GenerativeModel(api_key=os.getenv('GOOGLE_API_KEY'))
-    response = model.generate_content([input, image[0], prompt])
-    return response.text
+def get_gemini_response(input_text, image, prompt):
+    try:
+        model = genai.GenerativeModel(api_key=api_key)
+        response = model.generate_content([input_text, image[0], prompt])
+        return response.text
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+        st.stop()
 
 st.set_page_config(page_title='MultiLanguage Invoice Extractor')
 input_prompt = st.text_input('Input Prompt:', key='input')
 uploaded_file = st.file_uploader('Choose an image of the invoice...', type=['jpg', 'jpeg', 'png'])
-image = ''
+
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.image(image, caption='Uploaded Image', use_column_width=True)
@@ -47,7 +54,10 @@ you will have to answer any question based on the uploaded invoice image.
 """
 
 if submit:
-    image_data = input_image_setup(uploaded_file)
-    response = get_gemini_response(default_prompt, image_data, input_prompt)
-    st.subheader('The Response Is')
-    st.write(response)
+    if uploaded_file is None:
+        st.error('Please upload an image file.')
+    else:
+        image_data = input_image_setup(uploaded_file)
+        response = get_gemini_response(default_prompt, image_data, input_prompt)
+        st.subheader('The Response Is')
+        st.write(response)
