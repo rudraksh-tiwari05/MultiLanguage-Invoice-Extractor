@@ -53,3 +53,24 @@ else:
                     st.write(response)
     except Exception as e:
         st.error(f'Error: {e}')
+
+
+# Set the title of the app
+st.set_page_config(page_title='Image Upload App')
+
+# Create a file uploader widget for image files
+uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
+
+# Check if an image is uploaded
+if uploaded_file is not None:
+    # Display the uploaded image
+    image = Image.open(uploaded_file)
+    st.image(image, caption='Uploaded Image', use_column_width=True)
+    st.write("Image uploaded successfully!")
+
+    # Add your processing logic here
+    # For example, you can perform image analysis or processing on 'image'
+
+else:
+    st.write("Please upload an image file.")
+
