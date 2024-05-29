@@ -31,7 +31,7 @@ def input_image_setup(uploaded_file):
 
 def get_gemini_response(input_text, image, prompt):
     try:
-        model = genai.GenerativeModel(api_key=api_key)
+        model = genai.GenerativeModel()
         response = model.generate_content([input_text, image[0], prompt])
         return response.text
     except Exception as e:
