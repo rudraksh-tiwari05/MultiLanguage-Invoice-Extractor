@@ -14,11 +14,8 @@ print(f'API Key: {api_key}')  # Debug statement
 if api_key is None:
     st.error('API key is missing. Please set the GOOGLE_API_KEY environment variable.')
 else:
-    try:
-        # Initialize the generative AI model
-        genai_model = genai.GenerativeModel(api_key=api_key)
-    except Exception as e:
-        st.error(f'Error initializing GenerativeModel: {e}')
+    # Configure the generative AI API key
+    genai.configure(api_key=api_key)
 
     def input_image_setup(uploaded_file):
         if uploaded_file is not None:
@@ -40,7 +37,7 @@ else:
 
     def get_gemini_response(input_text, image_data, prompt):
         # Generate content using the generative AI model
-        response = genai_model.generate_content([input_text, image_data[0], prompt])
+        response = genai.GenerativeModel().generate_content([input_text, image_data[0], prompt])
         return response.text
 
     st.set_page_config(page_title='MultiLanguage Invoice Extractor')
