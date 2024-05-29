@@ -3,44 +3,30 @@ import streamlit as st
 import os
 from PIL import Image
 import pytesseract
-import google.generativeai as genai
 
 # Load environment variables from a .env file
 load_dotenv()
 
-# Configure the generative AI API key
-api_key = os.getenv('GOOGLE_API_KEY')
-if not api_key:
-    st.error('API key not found. Please set the GOOGLE_API_KEY environment variable.')
-    st.stop()
-
-genai.configure(api_key=api_key)
-
 def input_image_setup(uploaded_file):
     if uploaded_file is not None:
-        # Read the file into bytes
-        bytes_data = uploaded_file.getvalue()
-        image_parts = [
-            {
-                "mime_type": uploaded_file.type,
-                "data": bytes_data
-            }
-        ]
-        return image_parts
+        return uploaded_file.getvalue()
     else:
         raise FileNotFoundError('No File Uploaded')
 
 def extract_text_from_image(image):
-    return pytesseract.image_to_string(image)
+    image_bytes = input_image_setup(image)
+    image = Image.open(io.BytesIO(image_bytes))
+    
+    # Use pytesseract to perform OCR on the image
+    text = pytesseract.image_to_string(image)
+    return text
 
 def get_gemini_response(input_text, prompt):
-    try:
-        model = genai.GenerativeModel()
-        response = model.generate_content([input_text, prompt])
-        return response.text
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
-        st.stop()
+    # Call your generative model here with input_text and prompt
+    # For example:
+    # model_response = my_generative_model(input_text, prompt)
+    # return model_response
+    return f"Input Text: {input_text}, Prompt: {prompt}"  # Placeholder for model response
 
 st.set_page_config(page_title='MultiLanguage Invoice Extractor')
 input_prompt = st.text_input('Input Prompt:', key='input')
@@ -61,7 +47,7 @@ if submit:
     if uploaded_file is None:
         st.error('Please upload an image file.')
     else:
-        image_text = extract_text_from_image(image)
+        image_text = extract_text_from_image(uploaded_file)
         response = get_gemini_response(image_text, input_prompt or default_prompt)
         st.subheader('The Response Is')
         st.write(response)
